@@ -61,7 +61,7 @@ app.use(function(err, req, res, next) {
 app.post('/login', LoginController.loginPOST);
 app.delete('/login', LoginController.loginDELETE);
 
-app.get('/users/:userId', UsersController.tasksIdGET);
+app.get('/users/:userId', UsersController.usersIdGET);
 
 app.get('/tasks', TasksController.tasksGET);
 app.post('/tasks', validate({ body: taskSchema }), TasksController.tasksPOST);

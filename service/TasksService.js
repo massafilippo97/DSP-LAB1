@@ -9,7 +9,7 @@ const db = require('../db.js');
  * filter List Specifies the filter value necessary to filter the list of tasks (optional)
  * returns List
  **/
-exports.tasksGET = function(filter, user_id) {
+exports.tasksGET = function(filter, user_id, page, size) {
   return new Promise(function(resolve, reject) {
     let sql_query = ""; 
     //https://sqlite.org/lang_datefunc.html
@@ -35,6 +35,18 @@ exports.tasksGET = function(filter, user_id) {
         reject(err);
         return;
       }
+
+      if(size === undefined || size === ''){ 
+        size = 5;
+      }
+      if(page === undefined || page === ''){
+        page = 1; 
+      } 
+      if(page === undefined && size === undefined || page === '' && size === ''){
+        page = 0;
+        size = rows.length;
+      }
+
       resolve(rows.map((row) => ({ 
         id: row.id, 
         description: row.description, 
@@ -52,7 +64,7 @@ exports.tasksGET = function(filter, user_id) {
           markTask: {href: "http://localhost:8080/tasks/{taskId}/markTask"},
           login: {href: "http://localhost:8080/login"}
         }
-      })));
+      })).filter((row, index) => index >= parseInt(page)*parseInt(size) && index < (parseInt(page)+1) * parseInt(size)));
     });
   });
 };

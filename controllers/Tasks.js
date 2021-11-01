@@ -4,7 +4,7 @@ var utils = require('../utils/writer.js');
 var Tasks = require('../service/TasksService');
 
 module.exports.tasksGET = function tasksGET (req, res, next) {
-  Tasks.tasksGET(req.query.filter, 1) //req.user.id
+  Tasks.tasksGET(req.query.filter, 1, req.query.page, req.query.size) //req.user.id
     .then(function (response) {
       utils.writeJson(res, response);
     })
