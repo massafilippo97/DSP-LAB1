@@ -21,7 +21,19 @@ exports.tasksTaskIdAssignedToGET = function(taskId) {
         reject("taskId not found");
         return;
       }
-      resolve(rows.map((row) => ({ id: row.id, email: row.email, name: row.name})));
+      resolve(rows.map((row) => ({ 
+        id: row.id, 
+        email: row.email, 
+        name: row.name, //dovrei rendere accessibili le risorse utente globali?
+        _links: {
+          self: {href: "http://localhost:8080/users/"+row.id},
+          tasks: {href: "http://localhost:8080/tasks"},
+          task: {href: "http://localhost:8080/tasks/{taskId}"},
+          assignedTo: {href: "http://localhost:8080/tasks/{taskId}/assignedTo"},
+          markTask: {href: "http://localhost:8080/tasks/{taskId}/markTask"},
+          login: {href: "http://localhost:8080/login"}
+        }
+      })));
     });
   }); 
 }

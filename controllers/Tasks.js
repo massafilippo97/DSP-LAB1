@@ -9,7 +9,7 @@ module.exports.tasksGET = function tasksGET (req, res, next) {
       utils.writeJson(res, response);
     })
     .catch(function (response) {
-      utils.writeJson(res, response);
+      res.status(503).json({ error: response});
     });
 };
 
@@ -19,10 +19,10 @@ module.exports.tasksPOST = function tasksPOST (req, res, next) {
       Tasks.tasksPOST(req.body, 1, max_id+1) //req.user.id
     })
     .then(function (response) {
-      res.status(201).end();
+      res.status(201).json(response).end(); //response == oggetto appena creato
     })
     .catch(function (response) {
-      utils.writeJson(res, response);
+      res.status(503).json({ error: response});
     });
 };
 
@@ -74,7 +74,7 @@ module.exports.tasksTaskIdMarkTaskPUT = async function tasksTaskIdMarkTaskPUT (r
     else if(err === "taskId not found")
       res.status(404).json({ error: "can't update because the inserted task id does not exists"}); 
     else
-      utils.writeJson(res, err);
+      res.status(503).json({ error: response});
   }
 
   /*
