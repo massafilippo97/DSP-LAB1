@@ -23,7 +23,7 @@ module.exports.tasksTaskIdAssignedToGET = function tasksTaskIdAssignedToGET (req
   //DELETE from assignments where taskId = task = and user = userId
 module.exports.tasksTaskIdAssignedToUserIdDELETE = async function tasksTaskIdAssignedToUserIdDELETE (req, res, next) {
   try {
-    const checkOwner = await Tasks.checkTaskOwner(req.params.taskId, 1); //req.user.id 
+    const checkOwner = await Tasks.checkTaskOwner(req.params.taskId, req.user.id); //req.user.id 
     if(checkOwner) {
       const checkUser = await AssignedTasks.checkIfUserExists(req.params.userId);;
       if(checkUser) {
@@ -47,28 +47,6 @@ module.exports.tasksTaskIdAssignedToUserIdDELETE = async function tasksTaskIdAss
     else
       res.status(503).json({ error: err}); //riporta l'errore sql generico
   }
-
-
-  /*Tasks.checkTaskOwner(req.params.taskId, 4) //req.user.id 
-    .then(function (response) {
-      if(response)
-        AssignedTasks.checkIfUserExists(1); //req.user.id
-      else
-        res.status(400).json({ error: "can't update because the user is not the task's owner"}); 
-    })
-    .then(function (response) {
-      if(response)
-        AssignedTasks.tasksTaskIdAssignedToUserIdDELETE(req.params.taskId, 1); //req.user.id
-      else
-        res.status(404).json({ error: "can't update because the inserted user id does not exists"}); 
-    })
-    .then(response => res.status(204).end())
-    .catch(function (response) {
-      if(response === "taskId not found")
-        res.status(404).json({ error: "can't update because the inserted task id does not exists"}); 
-      else
-        res.status(503).json({ error: response}); //riporta l'errore sql generico
-    });*/
 };
 
   //verifica che il richiedente è anche owner dello specifico task
@@ -84,7 +62,7 @@ module.exports.tasksTaskIdAssignedToUserIdDELETE = async function tasksTaskIdAss
   //DELETE from assignments where = task = and user = 
 module.exports.tasksTaskIdAssignedToUserIdPUT = async function tasksTaskIdAssignedToUserIdPUT (req, res, next) {
   try {
-    const checkOwner = await Tasks.checkTaskOwner(req.params.taskId, 1); //req.user.id 
+    const checkOwner = await Tasks.checkTaskOwner(req.params.taskId, req.user.id); //req.user.id, 1
     if(checkOwner) {
       const checkUser = await AssignedTasks.checkIfUserExists(req.params.userId);;
       if(checkUser) {

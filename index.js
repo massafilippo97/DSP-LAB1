@@ -25,19 +25,6 @@ var app = expressAppConfig.getApp();
 const { passport, opts, jwtstrategy } = require('./passport.js');  
 app.use(passport.initialize());
 
-/*
-//utile per autenticare richieste
-//passport.authenticate('jwt', {session: false})
-//esempio di uso
-app.use('/auth', auth);
-app.use('/user', passport.authenticate('jwt', {session: false}), user);
-
-//dovrei piazzarla dove??
-passport.use(new jwtstrategy(opts, function(jwt_payload, done){
-    return done(null, jwt_payload.user);
-  })
-);
-*/
 
 //declaration of the used schema validations
 var fs = require('fs');
@@ -59,20 +46,23 @@ app.use(function(err, req, res, next) {
 
 
 app.post('/login', LoginController.loginPOST);
-app.delete('/login', LoginController.loginDELETE);
+//app.delete('/login', LoginController.loginDELETE);
 
 app.get('/users/:userId', UsersController.usersIdGET);
 
-app.get('/tasks', TasksController.tasksGET);
-app.post('/tasks', validate({ body: taskSchema }), TasksController.tasksPOST);
-app.get('/tasks/:taskId', TasksController.tasksTaskIdGET);
-app.put('/tasks/:taskId', validate({ body: taskSchema }), TasksController.tasksTaskIdPUT);
-app.delete('/tasks/:taskId', TasksController.tasksTaskIdDELETE);
-app.put('/tasks/:taskId/markTask', TasksController.tasksTaskIdMarkTaskPUT);
+app.get('/tasks',passport.authenticate('jwt', {session: false}), TasksController.tasksGET);
+app.get('/tasks/public', TasksController.tasksPublicGET); //chiamata publica
+app.get('/tasks/assignedToMe',passport.authenticate('jwt', {session: false}), TasksController.tasksAssignedToMeGET);
+app.get('/tasks/createdByMe',passport.authenticate('jwt', {session: false}), TasksController.tasksCreatedByMeGET);
+app.post('/tasks', passport.authenticate('jwt', {session: false}), validate({ body: taskSchema }), TasksController.tasksPOST);
+app.get('/tasks/:taskId', passport.authenticate('jwt', {session: false}), TasksController.tasksTaskIdGET);
+app.put('/tasks/:taskId', passport.authenticate('jwt', {session: false}), validate({ body: taskSchema }), TasksController.tasksTaskIdPUT);
+app.delete('/tasks/:taskId', passport.authenticate('jwt', {session: false}), TasksController.tasksTaskIdDELETE);
+app.put('/tasks/:taskId/markTask', passport.authenticate('jwt', {session: false}), TasksController.tasksTaskIdMarkTaskPUT);
 
-app.get('/tasks/:taskId/assignedTo', AssignedTasksController.tasksTaskIdAssignedToGET);
-app.put('/tasks/:taskId/assignedTo/:userId', AssignedTasksController.tasksTaskIdAssignedToUserIdPUT);
-app.delete('/tasks/:taskId/assignedTo/:userId', AssignedTasksController.tasksTaskIdAssignedToUserIdDELETE);
+app.get('/tasks/:taskId/assignedTo', passport.authenticate('jwt', {session: false}), AssignedTasksController.tasksTaskIdAssignedToGET);
+app.put('/tasks/:taskId/assignedTo/:userId', passport.authenticate('jwt', {session: false}), AssignedTasksController.tasksTaskIdAssignedToUserIdPUT);
+app.delete('/tasks/:taskId/assignedTo/:userId', passport.authenticate('jwt', {session: false}), AssignedTasksController.tasksTaskIdAssignedToUserIdDELETE);
 
 
 // Initialize the Swagger middleware

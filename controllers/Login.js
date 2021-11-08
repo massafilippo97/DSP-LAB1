@@ -6,7 +6,7 @@ var Login = require('../service/LoginService');
 ///const passportObjects = require('./passport'); //vedo se serve almeno per inizializzarlo
 const { passport, opts, jwtstrategy } = require('../passport.js');
 const jsonwebtoken = require('jsonwebtoken');
-
+/*
 module.exports.loginDELETE = function loginDELETE (req, res, next) {
   Login.loginDELETE()
     .then(function (response) {
@@ -16,7 +16,7 @@ module.exports.loginDELETE = function loginDELETE (req, res, next) {
       utils.writeJson(res, response);
     });
 };
-
+*/
 module.exports.loginPOST = function loginPOST (req, res, next) {
   /*Login.loginPOST()
     .then(function (response) {
@@ -43,7 +43,7 @@ module.exports.loginPOST = function loginPOST (req, res, next) {
         //const token = jwt.sign(user, 'your_jwt_secret');
         //return res.json({user, token});
       
-        const token = jsonwebtoken.sign({ user: user.id }, opts.secretOrKey );
+        const token = jsonwebtoken.sign({ user: {id : user.id, name: user.name} }, opts.secretOrKey );
         res.cookie('jwt', token, { httpOnly: true, sameSite: true});
         return res.json({ id: user.id, name: user.name});
       });

@@ -9,41 +9,35 @@ const db = require('../db.js');
  * filter List Specifies the filter value necessary to filter the list of tasks (optional)
  * returns List
  **/
-exports.tasksGET = function(filter, user_id, page, size) {
+exports.tasksGET = function(user_id, page, size) {
   return new Promise(function(resolve, reject) {
-    let sql_query = ""; 
+    //let sql_query = ""; 
+    let sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND a.user = ? UNION SELECT * FROM tasks WHERE owner = ? UNION SELECT * FROM tasks WHERE owner = ?;";
     //https://sqlite.org/lang_datefunc.html
+/*    
     switch(filter){ //if authenticated (cioè se user_id è != null)
       case 'public':
-        sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND user = 1 AND private = 0 UNION SELECT * FROM tasks WHERE owner = "+user_id+" and private = 0;";
+        sql_query = "SELECT * FROM tasks WHERE private = 0;"; //tanto includerà automaticamente anche assignedToMe public e createdByMe public [ed i public del singolo utente]
         break;
       case 'assignedToMe':
-        sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND user = "+user_id+";"
+        sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND user = ?;"
         break;
       case 'createdByMe':
-        sql_query = "SELECT * FROM tasks WHERE user = "+user_id+";";   
+        sql_query = "SELECT * FROM tasks WHERE owner = ?;";   
         break;
-      default:  //qualsiasi altro caso ritorna sempre la lista non filtrata (anche ?filter=all)
-        sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND user = "+user_id+" UNION SELECT * from tasks WHERE owner = "+user_id+";"
+      default: 
+        sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND a.user = ? UNION SELECT * FROM tasks WHERE owner = ? UNION SELECT * FROM tasks WHERE owner = ?;" //union delle assignedToMe e createdByMe queries+ restanti tasks public
         break; 
     }
+ */
 
-//if not authenticated, then perform the basic query "SELECT * FROM tasks WHERE private=0";
-
-    db.all(sql_query, [], (err, rows) =>{ 
+    db.all(sql_query, [user_id, user_id, user_id], (err, rows) =>{ 
       if(err) {
         reject(err);
         return;
       }
-
-      if(size === undefined || size === ''){ 
-        size = 5;
-      }
-      if(page === undefined || page === ''){
-        page = 1; 
-      } 
-      if(page === undefined && size === undefined || page === '' && size === ''){
-        page = 0;
+ 
+      if(size === -1){ 
         size = rows.length;
       }
 
@@ -69,19 +63,115 @@ exports.tasksGET = function(filter, user_id, page, size) {
   });
 };
 
-/*
-app.get('/tasks', TasksController.tasksGET);
-app.post('/tasks', validate({ body: taskSchema }), TasksController.tasksPOST);
-app.get('/tasks/:taskId', TasksController.tasksTaskIdGET);
-app.put('/tasks/:taskId', validate({ body: taskSchema }), TasksController.tasksTaskIdPUT);
-app.delete('/tasks/:taskId', TasksController.tasksTaskIdDELETE);
-app.put('/tasks/:taskId/markTask', TasksController.tasksTaskIdMarkTaskPUT);
 
-app.get('/tasks/:taskId/assignedTo', AssignedTasksController.tasksTaskIdAssignedToGET);
-app.put('/tasks/:taskId/assignedTo/:userId', AssignedTasksController.tasksTaskIdAssignedToUserIdPUT);
-app.delete('/tasks/:taskId/assignedTo/:userId', AssignedTasksController.tasksTaskIdAssignedToUserIdDELETE);
+exports.tasksPublicGET = function(page, size) {
+  return new Promise(function(resolve, reject) {
+    let sql_query = "SELECT * FROM tasks WHERE private = 0;";
+ 
+    db.all(sql_query, [], (err, rows) =>{ 
+      if(err) {
+        reject(err);
+        return;
+      }
+ 
+      if(size === -1){ 
+        size = rows.length;
+      }
 
-*/
+      resolve(rows.map((row) => ({ 
+        id: row.id, 
+        description: row.description, 
+        important: row.important, 
+        private: row.private, 
+        project: row.project, 
+        deadline: row.deadline, 
+        completed: row.completed, 
+        owner: row.owner,
+        _links: {
+          self: {href: "http://localhost:8080/tasks/"+row.id},
+          tasks: {href: "http://localhost:8080/tasks"},
+          user: {href: "http://localhost:8080/users/{userId}"},
+          assignedTo: {href: "http://localhost:8080/tasks/{taskId}/assignedTo"},
+          markTask: {href: "http://localhost:8080/tasks/{taskId}/markTask"},
+          login: {href: "http://localhost:8080/login"}
+        }
+      })).filter((row, index) => index >= parseInt(page)*parseInt(size) && index < (parseInt(page)+1) * parseInt(size)));
+    });
+  });
+};
+
+exports.tasksAssignedToMeGET = function(user_id, page, size) {
+  return new Promise(function(resolve, reject) {
+    let sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task AND user = ?;"
+ 
+    db.all(sql_query, [user_id], (err, rows) =>{ 
+      if(err) {
+        reject(err);
+        return;
+      }
+ 
+      if(size === -1){ 
+        size = rows.length;
+      }
+
+      resolve(rows.map((row) => ({ 
+        id: row.id, 
+        description: row.description, 
+        important: row.important, 
+        private: row.private, 
+        project: row.project, 
+        deadline: row.deadline, 
+        completed: row.completed, 
+        owner: row.owner,
+        _links: {
+          self: {href: "http://localhost:8080/tasks/"+row.id},
+          tasks: {href: "http://localhost:8080/tasks"},
+          user: {href: "http://localhost:8080/users/{userId}"},
+          assignedTo: {href: "http://localhost:8080/tasks/{taskId}/assignedTo"},
+          markTask: {href: "http://localhost:8080/tasks/{taskId}/markTask"},
+          login: {href: "http://localhost:8080/login"}
+        }
+      })).filter((row, index) => index >= parseInt(page)*parseInt(size) && index < (parseInt(page)+1) * parseInt(size)));
+    });
+  });
+};
+
+exports.tasksCreatedByMeGET = function(user_id, page, size) {
+  return new Promise(function(resolve, reject) {
+    let sql_query = "SELECT * FROM tasks WHERE owner = ?;";  
+ 
+    db.all(sql_query, [user_id], (err, rows) =>{ 
+      if(err) {
+        reject(err);
+        return;
+      }
+ 
+      if(size === -1){ 
+        size = rows.length;
+      }
+
+      resolve(rows.map((row) => ({ 
+        id: row.id, 
+        description: row.description, 
+        important: row.important, 
+        private: row.private, 
+        project: row.project, 
+        deadline: row.deadline, 
+        completed: row.completed, 
+        owner: row.owner,
+        _links: {
+          self: {href: "http://localhost:8080/tasks/"+row.id},
+          tasks: {href: "http://localhost:8080/tasks"},
+          user: {href: "http://localhost:8080/users/{userId}"},
+          assignedTo: {href: "http://localhost:8080/tasks/{taskId}/assignedTo"},
+          markTask: {href: "http://localhost:8080/tasks/{taskId}/markTask"},
+          login: {href: "http://localhost:8080/login"}
+        }
+      })).filter((row, index) => index >= parseInt(page)*parseInt(size) && index < (parseInt(page)+1) * parseInt(size)));
+    });
+  });
+};
+
 
 /**
  * Add a new task (ID is automatically generated by the server and the creator becomes its owner [assignees list is left empty])
@@ -177,17 +267,29 @@ exports.checkTaskOwner = function(taskId, userId) {
  *
  * taskId Long Task id to delete
  * returns List
+ * 
+ * The user can retrieve a single existing task, identified by the specified id, if at least one of the following conditions is satisfied:
+ * 1) the task is public;
+ * 2) the user is the owner of the task;
+ * 3) the user is an assignee of the task.
  **/
-exports.tasksTaskIdGET = function(taskId) {
+exports.tasksTaskIdGET = function(taskId, userId) {
   return new Promise(function(resolve, reject) {
-    const sql_query = "SELECT * FROM tasks WHERE id=?"
-    db.all(sql_query, [taskId], (err, rows) =>{
+ 
+      var sql_query = "SELECT t.id, t.description, t.important, t.private, t.project, t.deadline, t.completed, t.owner FROM assignments a, tasks t WHERE t.id = a.task and t.id = ? AND a.user = ? UNION SELECT * FROM tasks WHERE id = ? and owner = ? UNION SELECT * FROM tasks WHERE id = ? and owner = ?;" //union delle assignedToMe e createdByMe queries+ restanti tasks public
+
+    
+    db.all(sql_query, [taskId, userId, taskId, userId, taskId, userId], (err, rows) =>{
       if(err){
         reject(err);
         return;
       }
-      if(rows.length === 0) {
+      if(rows.length === 0 && userId !== undefined) {
         reject("taskId not found");
+        return;
+      }
+      if(rows.length === 0 && userId === undefined) {
+        reject("taskId not found or unauthorized access"); //da adattare nella TaskService
         return;
       }
       resolve(rows.map((row) => ({ 

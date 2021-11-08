@@ -1,18 +1,20 @@
 'use strict';
 
 const db = require('../db.js');
+const bcrypt = require('bcrypt');
 
 /**
  * Perform the logout process
  *
  * no response value expected for this operation
  **/
+/*
 exports.loginDELETE = function() {
   return new Promise(function(resolve, reject) { //??? come si fa il logout?
     resolve();
   });
 }
-
+*/
 
 /**
  * Useful to check user and password validity 

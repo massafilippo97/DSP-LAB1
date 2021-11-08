@@ -18,7 +18,7 @@ const cookieExtractor = (req) => {
 
 var opts = {};
 opts.jwtFromRequest = cookieExtractor;
-opts.secretOrKey = "05970414ee49bba340b4cc45cd5b34196716ee10caf5350c78c779cfc3a901f8"; // 64 bytes
+opts.secretOrKey = "05970414ee49bba340b4cc45cd5b34196716ee10caf5350c78c779cfc3a901f8"; // 64 bytes [credo sia una private key]
 
 /*
 when a user requests an operation that requires authentication, an authentication
