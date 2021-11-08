@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: API for the To Do Manager web service
+  title: API set for the To Do Manager web app [DSP version] 
   version: "1.0"
 servers:
 - url: /
@@ -9,6 +9,8 @@ tags:
   description: Basic operations about users' tasks
 - name: assigned tasks
   description: Operations related to the assignments of tasks
+- name: users
+  description: Operations about user login process
 - name: login
   description: Operations about user login process
 paths:
@@ -16,23 +18,23 @@ paths:
     get:
       tags:
       - tasks
-      summary: Retrieve all the tasks
+      summary: Retrieve all the [logged user's] tasks
       operationId: tasksGET
-      parameters:
-      - name: filter
-        in: query
-        description: Specifies the filter value necessary to filter the list of tasks
-        required: false
-        style: form
-        explode: false
-        schema:
-          type: array
-          items:
-            type: string
-            enum:
-            - public
-            - assignedToMe
-            - createdByMe
+      #parameters:
+      #- name: filter
+      #  in: query
+      #  description: Specifies the filter value necessary to filter the list of tasks
+      #  required: false
+      #  style: form
+      #  explode: false
+      #  schema:
+      #    type: array
+      #    items:
+      #      type: string
+      #      enum:
+      #      - public
+      #      - assignedToMe
+      #      - createdByMe
       responses:
         "200":
           description: OK
@@ -43,7 +45,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Task'
                 x-content-type: application/json
-        "500":
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
     post:
@@ -65,9 +67,67 @@ paths:
           description: Created
         "400":
           description: Bad Request
-        "500":
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
+  /tasks/public: 
+    get:
+      tags:
+      - tasks
+      summary: Retrieve all the public tasks
+      operationId: tasksPublicGET
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+                x-content-type: application/json
+        "503":
+          description: Internal Server Error
+      x-swagger-router-controller: Tasks
+  /tasks/assignedToMe:
+    get:
+      tags:
+      - tasks
+      summary: Retrieve all the tasks assigned to a logged user
+      operationId: tasksAssignedToMeGET
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+                x-content-type: application/json
+        "503":
+          description: Internal Server Error
+      x-swagger-router-controller: Tasks
+  /tasks/createdByMe:
+    get:
+      tags:
+      - tasks
+      summary: Retrieve all the tasks created by a logged user
+      operationId: tasksCreatedByMeGET
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+                x-content-type: application/json
+        "503":
+          description: Internal Server Error
+      x-swagger-router-controller: Tasks
+  
   /tasks/{TaskId}:
     get:
       tags:
@@ -96,7 +156,7 @@ paths:
                 x-content-type: application/json
         "404":
           description: Task not found
-        "500":
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
     put:
@@ -130,7 +190,7 @@ paths:
           description: Bad Request
         "404":
           description: Task not found
-        "500":
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
     delete:
@@ -153,7 +213,7 @@ paths:
           description: No Content
         "404":
           description: Task not found
-        "500":
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
   /tasks/{TaskId}/assignedTo:
@@ -182,7 +242,9 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
                 x-content-type: application/json
-        "500":
+        "404":
+          description: Task Not Found
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: AssignedTasks
   /tasks/{TaskId}/assignedTo/{UserId}:
@@ -217,8 +279,8 @@ paths:
         "400":
           description: Bad Request
         "404":
-          description: Task not found
-        "500":
+          description: Task/User not found
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: AssignedTasks
     delete:
@@ -250,7 +312,7 @@ paths:
           description: No Content
         "404":
           description: Task not found
-        "500":
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: AssignedTasks
   /tasks/{TaskId}/markTask:
@@ -276,7 +338,38 @@ paths:
           description: Bad Request
         "404":
           description: Task not found
-        "500":
+        "503":
+          description: Internal Server Error
+      x-swagger-router-controller: Tasks
+  /users/{UserId}:
+    get:
+      tags:
+      - users
+      summary: Retrieve all the public tasks
+      operationId: usersUserIdGET
+      parameters:
+      - name: UserId
+        in: path
+        description: User id
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+                x-content-type: application/json
+        "404":
+          description: User Not Found
+        "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
   /login:
@@ -291,19 +384,19 @@ paths:
         "400":
           description: Bad Request
       x-swagger-router-controller: Login
-    delete:
-      tags:
-      - login
-      summary: Perform the logout process
-      operationId: loginDELETE
-      responses:
-        "204":
-          description: No Content
-        "404":
-          description: Task not found
-        "500":
-          description: Internal Server Error
-      x-swagger-router-controller: Login
+    #delete:
+    #  tags:
+    #  - login
+    #  summary: Perform the logout process
+    #  operationId: loginDELETE
+    #  responses:
+    #    "204":
+    #      description: No Content
+    #    "404":
+    #      description: Task not found
+    #    "503":
+    #      description: Internal Server Error
+    #  x-swagger-router-controller: Login
 components:
   schemas:
     User:
@@ -332,16 +425,20 @@ components:
       type: object
       properties:
         id:
-          type: string
+          type: number
         description:
           maxLength: 160
           type: string
         important:
-          type: boolean
-          default: false
+          type: number
+          default: 0
+          minimum: 0
+          maximum: 1
         private:
-          type: boolean
-          default: true
+          type: number
+          default: 1
+          minimum: 0
+          maximum: 1
         projects:
           type: string
           enum:
@@ -354,21 +451,19 @@ components:
           type: string
           format: date-time
         completed:
-          type: boolean
-          default: false
+          type: number
+          default: 0
+          minimum: 0
+          maximum: 1
         owner:
-          type: string
-          format: uri
-        assignedTo:
-          type: string
-          format: uri
+          type: number 
       example:
-        important: false
-        owner: http://example.com/aeiou
-        private: true
-        projects: ""
-        description: description
-        id: id
-        completed: false
-        deadline: 2000-01-23T04:56:07.000+00:00
-        assignedTo: http://example.com/aeiou
+        id: 1
+        description: a very detailed description
+        important: 0
+        private: 1
+        projects: "Personal"
+        deadline: 2000-01-23T04:56:07.000+00:00 
+        completed: 0
+        owner: 2
+        
