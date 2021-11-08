@@ -11,7 +11,7 @@ module.exports.tasksGET = function tasksGET (req, res, next) {
       utils.writeJson(res, response);
     })
     .catch(function (response) {
-      res.status(503).json({ error: response});
+      res.status(503).json({ error: response.message});
     });
 };
 
@@ -22,7 +22,7 @@ module.exports.tasksPublicGET = function tasksPublicGET (req, res, next) { //chi
       utils.writeJson(res, response);
     })
     .catch(function (response) {
-      res.status(503).json({ error: response});
+      res.status(503).json({ error: response.message});
     });
 };
 
@@ -34,7 +34,7 @@ module.exports.tasksAssignedToMeGET = function tasksAssignedToMeGET (req, res, n
       utils.writeJson(res, response);
     })
     .catch(function (response) {
-      res.status(503).json({ error: response});
+      res.status(503).json({ error: response.message});
     });
 };
 
@@ -46,7 +46,7 @@ module.exports.tasksCreatedByMeGET = function tasksCreatedByMeGET (req, res, nex
       utils.writeJson(res, response);
     })
     .catch(function (response) {
-      res.status(503).json({ error: response});
+      res.status(503).json({ error: response.message});
     });
 };
 
@@ -59,7 +59,7 @@ module.exports.tasksPOST = function tasksPOST (req, res, next) {
       res.status(201).json(response).end(); //response == oggetto appena creato
     })
     .catch(function (response) {
-      res.status(503).json({ error: response});
+      res.status(503).json({ error: response.message});
     });
 };
 
@@ -69,29 +69,36 @@ module.exports.tasksTaskIdDELETE = function tasksTaskIdDELETE (req, res, next) {
       if(response)
         Tasks.tasksTaskIdDELETE(req.params.taskId);
       else
-        res.status(400).json({ error: "can't delete because the user is not the task's owner"});
+        res.status(403).json({ error: "Forbidden: can't delete because you are not the task's owner"});
       //aggiungere qui un altro if per 404 task id not found
     })
     .then(response => res.status(204).end())
     .catch(function (response) {
       if(response === "taskId not found")
-        res.status(404).json({ error: "can't update because the inserted task id does not exists"}); 
-      else
-        res.status(503).json({ error: response}); //riporta l'errore sql generico
-    });
-};
-
-module.exports.tasksTaskIdGET = function tasksTaskIdGET (req, res, next) {
-  Tasks.tasksTaskIdGET(req.params.taskId, req.user.id)
-    .then(function (response) {
-      utils.writeJson(res, response);
-    })
-    .catch(function (response) {
-      if(response === "taskId not found")
-        res.status(404).json({ error: "task not found"}); 
+        res.status(404).json({ error: "Task Not found: can't delete because the inserted task id does not exists"}); 
       else
         res.status(503).json({ error: response.message}); //riporta l'errore sql generico
     });
+};
+
+module.exports.tasksTaskIdGET = async function tasksTaskIdGET (req, res, next) {
+  try {
+    const checkOwner = await Tasks.checkTaskOwner(req.params.taskId, req.user.id); //req.user.id, 1
+    if(checkOwner) { 
+      const response = await Tasks.tasksTaskIdGET(req.params.taskId, req.user.id);
+      res.status(200).json(response).end();
+    }
+    else { 
+      throw new Error('403'); //Forbidden
+    }
+  } catch(err) {
+    if(err.message === '403')
+      res.status(403).json({ error: "Forbidden: can't fetch because you are not the task's owner"});
+    else if(err === "taskId not found")
+      res.status(404).json({ error: "Task Not found: can't fetch because the inserted task id does not exists"}); 
+    else
+      res.status(503).json({ error: response.message});
+  }
 };
 
 module.exports.tasksTaskIdMarkTaskPUT = async function tasksTaskIdMarkTaskPUT (req, res, next) {
@@ -103,15 +110,15 @@ module.exports.tasksTaskIdMarkTaskPUT = async function tasksTaskIdMarkTaskPUT (r
       res.status(201).end();
     }
     else { 
-      throw new Error('400');
+      throw new Error('403'); //Forbidden
     }
   } catch(err) {
-    if(err.message === '400')
-      res.status(400).json({ error: "can't update because the user is not the task's owner"});
+    if(err.message === '403')
+      res.status(403).json({ error: "Forbidden: can't update because you are not the task's owner"});
     else if(err === "taskId not found")
-      res.status(404).json({ error: "can't update because the inserted task id does not exists"}); 
+      res.status(404).json({ error: "Task Not found: can't update because the inserted task id does not exists"}); 
     else
-      res.status(503).json({ error: response});
+      res.status(503).json({ error: response.message});
   }
 };
 
@@ -121,14 +128,13 @@ module.exports.tasksTaskIdPUT = function tasksTaskIdPUT (req, res, next) {
       if(response)
         Tasks.tasksTaskIdPUT(req.body, req.params.taskId);
       else
-        res.status(400).json({ error: "can't update because the user is not the task's owner"});
-      //aggiungere qui un altro if per 404 task id not found
+        res.status(403).json({ error: "Forbidden: can't update because you are not the task's owner"}); 
     })
     .then(response => res.status(204).end())
     .catch(function (response) {
       if(response === "taskId not found")
-        res.status(404).json({ error: "can't update because the inserted task id does not exists"}); 
+        res.status(404).json({ error: "Task Not found: can't update because the inserted task id does not exists"}); 
       else
-        res.status(503).json({ error: response}); //riporta l'errore sql generico
+        res.status(503).json({ error: response.message}); //riporta l'errore sql generico
     });
 };

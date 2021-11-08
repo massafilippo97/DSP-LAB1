@@ -287,11 +287,7 @@ exports.tasksTaskIdGET = function(taskId, userId) {
       if(rows.length === 0 && userId !== undefined) {
         reject("taskId not found");
         return;
-      }
-      if(rows.length === 0 && userId === undefined) {
-        reject("taskId not found or unauthorized access"); //da adattare nella TaskService
-        return;
-      }
+      } 
       resolve(rows.map((row) => ({ 
         id: row.id, 
         description: row.description, 
