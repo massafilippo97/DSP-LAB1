@@ -45,6 +45,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/Task'
                 x-content-type: application/json
+        "401":
+          description: Unauthorized                
         "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
@@ -65,8 +67,10 @@ paths:
       responses:
         "201":
           description: Created
+        "401":
+          description: Unauthorized  
         "400":
-          description: Bad Request
+          description: Bad Request ##teoricamente restituito dal middleware validator
         "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
@@ -105,6 +109,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/Task'
                 x-content-type: application/json
+        "401":
+          description: Unauthorized  
         "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
@@ -124,6 +130,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/Task'
                 x-content-type: application/json
+        "401":
+          description: Unauthorized  
         "503":
           description: Internal Server Error
       x-swagger-router-controller: Tasks
@@ -154,6 +162,10 @@ paths:
                 items:
                   $ref: '#/components/schemas/Task'
                 x-content-type: application/json
+        "401":
+          description: Unauthorized  
+        "403":
+          description: Forbbiden  
         "404":
           description: Task not found
         "503":
@@ -188,6 +200,10 @@ paths:
           description: No Content (successfully created)
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized  
+        "403":
+          description: Forbidden  
         "404":
           description: Task not found
         "503":
@@ -211,6 +227,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Unauthorized  
+        "403":
+          description: Forbbiden  
         "404":
           description: Task not found
         "503":
@@ -242,6 +262,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
                 x-content-type: application/json
+        "401":
+          description: Unauthorized
         "404":
           description: Task Not Found
         "503":
@@ -278,6 +300,10 @@ paths:
           description: No Content (successfully created)
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized  
+        "403":
+          description: Forbbiden  
         "404":
           description: Task/User not found
         "503":
@@ -310,6 +336,10 @@ paths:
       responses:
         "204":
           description: No Content
+        "401":
+          description: Unauthorized  
+        "403":
+          description: Forbbiden  
         "404":
           description: Task not found
         "503":
@@ -336,6 +366,10 @@ paths:
           description: No Content (successfully created)
         "400":
           description: Bad Request
+        "401":
+          description: Unauthorized  
+        "403":
+          description: Forbbiden  
         "404":
           description: Task not found
         "503":
@@ -367,6 +401,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/User'
                 x-content-type: application/json
+        "401":
+          description: Unauthorized       
         "404":
           description: User Not Found
         "503":
@@ -383,6 +419,8 @@ paths:
           description: Created
         "400":
           description: Bad Request
+        "503":
+          description: Internal Server Error
       x-swagger-router-controller: Login
     #delete:
     #  tags:
