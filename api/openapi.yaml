@@ -495,6 +495,10 @@ components:
           maximum: 1
         owner:
           type: number 
+        links:
+          type: array
+          items:
+            type: string
       example:
         id: 1
         description: a very detailed description
